@@ -56,7 +56,7 @@ curl -L "https://apim.moex.com/iss/datashop/algopack/fo/obstats/SiH5.json?from=2
 
 ## Response Block
 
-SuperCandles JSON usually stores rows in the `data` block:
+SuperCandles JSON usually stores rows in the `data` block. Normalize `columns` plus `data` into rows before filtering, writing tables, or charting:
 
 ```javascript
 const block = payload.data;
@@ -69,14 +69,18 @@ If the user needs a table, rename `secid` to `ticker` for readability.
 
 ## Pagination
 
-Raw endpoints can cap rows per response. Keep requesting with `start` until the `data` block is empty:
+Raw endpoints can cap rows per response. Keep requesting with `start` until the `data` block is empty, and advance by the returned row count:
 
 ```text
 start = 0
-next_start = start + returned_row_count
+while true:
+    request with start
+    rows = normalized data block rows
+    stop when rows is empty
+    start = start + len(rows)
 ```
 
-Local notes mention a 1000-row raw SuperCandles limit in some contexts, so pagination is required for full day/range pulls.
+Local notes mention a 1000-row raw SuperCandles limit in some contexts, so pagination is required for full day/range pulls. Keep `limit` route-dependent where supported; do not promise one universal maximum.
 
 ## TradeStats Fields
 
@@ -119,29 +123,11 @@ EQ core:
 
 FO/FX routes can include `mid_price`, `micro_price`, `spread_l1..spread_l20`, cumulative depth fields such as `vol_b_l1..vol_b_l20`, and level-specific VWAP fields.
 
-## Chart-Ready Recipes
+## Output Patterns
 
-VWAP and pressure chart:
+- Produce `.csv` or normalized JSON tables when the user wants data handoff to another tool.
+- Create a simple self-contained HTML chart when the user asks for browser output.
+- Use pandas or Matplotlib plotting when the user asks for notebook/script output.
+- Use the project's existing charting stack when working inside an app.
 
-```text
-x = tradedate + " " + tradetime
-y1 = pr_close
-y2 = pr_vwap
-bars = vol
-color = disb > 0 ? buy_color : sell_color
-```
-
-Order churn chart:
-
-```text
-cancel_to_put = cancel_orders / put_orders
-```
-
-Liquidity chart:
-
-```text
-x = tradedate + " " + tradetime
-y1 = spread_bbo
-y2 = imbalance_vol
-bars = vol_b + vol_s
-```
+Let the user's requested analysis decide which SuperCandles fields to keep. Avoid inventing VWAP, imbalance, churn, or liquidity panels unless the user asks for those metrics.

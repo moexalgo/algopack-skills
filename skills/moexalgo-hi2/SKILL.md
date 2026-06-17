@@ -1,6 +1,6 @@
 ---
 name: moexalgo-hi2
-description: Python moexalgo library workflows for HI2 DataFrames, session.TOKEN, Market.hi2, Ticker.hi2, Herfindahl-Hirschman concentration, hhi_* metrics, daily EQ/FO/FX concentration analysis, pivots, groupbys, interpretation bands, and missing-row caveats.
+description: Python moexalgo library workflows for HI2 DataFrames, .env session.TOKEN setup, Market.hi2, Ticker.hi2, Herfindahl-Hirschman concentration, hhi_* metrics, daily EQ/FO/FX concentration analysis, offset pagination, pivots, groupbys, interpretation bands, and missing-row caveats.
 ---
 
 # MOEXAlgo HI2
@@ -11,10 +11,16 @@ Use this skill when the user wants HI2 through the `moexalgo` Python package and
 
 ## Quick Start
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market, Ticker
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 
 eq = Market("EQ")
@@ -29,8 +35,9 @@ sber_hi2 = sber.hi2(start="2025-01-01", end="2025-01-31")
 1. Use `Market("EQ"|"FO"|"FX").hi2(date=...)` for all instruments.
 2. Use `Ticker(...).hi2(start=..., end=...)` for one instrument.
 3. Filter or pivot by `metric`.
-4. Apply broad concentration bands when useful.
-5. Explain missing rows as possible coverage, entitlement, date, or participant-threshold issues.
+4. Use library `offset` for pagination where supported; do not pass raw REST `start` to library methods.
+5. Apply broad concentration bands when useful.
+6. Explain missing rows as possible coverage, entitlement, date, or participant-threshold issues.
 
 ## References
 

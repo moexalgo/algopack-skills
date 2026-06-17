@@ -1,6 +1,6 @@
 ---
 name: algopack-mega-alerts
-description: Direct ALGOPACK Mega Alerts API workflows for market anomaly alerts, alert_type thresholds, reference JSON, EQ/FO alert endpoints, curl, JSON/CSV, abnormal volume or price signals, and chart-ready anomaly tables.
+description: Direct ALGOPACK Mega Alerts API workflows for market anomaly alerts, alert_type thresholds, reference JSON, documented EQ/FO alert endpoints, curl, JSON/CSV handoff, simple HTML output, ISS columns/data normalization, start pagination, and observed abnormal volume or price signals.
 ---
 
 # ALGOPACK Mega Alerts
@@ -22,13 +22,15 @@ Use `date=YYYY-MM-DD` for market-wide alerts and `from=YYYY-MM-DD&till=YYYY-MM-D
 
 1. Choose market `eq` or `fo` unless current entitlement proves more coverage.
 2. Fetch alerts and parse the `data` block.
-3. Group by `alert_type`, `secid`, and date/time.
-4. Parse `reference` only as historical post-alert context.
-5. Avoid forecast language.
+3. Normalize ISS `columns` plus `data` arrays into rows before filtering, writing tables, or charting.
+4. Group by `alert_type`, `secid`, and date/time only when the requested analysis needs grouping.
+5. Parse `reference` only as historical post-alert context.
+6. Match output to the request: CSV/JSON tables for handoff, simple HTML charts for browser output, Matplotlib or pandas plotting for notebook/script output, and the app's existing charting stack inside an app.
+7. Avoid forecast language.
 
 ## References
 
-Read `references/mega-alerts.md` for endpoints, alert types, fields, `reference` schema, and chart recipes.
+Read `references/mega-alerts.md` for endpoints, alert types, fields, `reference` schema, pagination, and output patterns.
 
 ## Boundary
 

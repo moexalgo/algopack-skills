@@ -29,7 +29,7 @@ curl -L "https://apim.moex.com/iss/datashop/algopack/eq/alerts/SBER.csv?from=202
 
 ## Response Block
 
-Alerts JSON uses the `data` block:
+Alerts JSON uses the `data` block. Normalize `columns` plus `data` into rows before filtering, writing tables, or charting:
 
 ```javascript
 const block = payload.data;
@@ -39,6 +39,21 @@ const rows = block.data.map((row) =>
 ```
 
 Raw ISS uses `secid`; user-facing tables can label it `ticker`.
+
+## Pagination
+
+Use `start` if an alerts route caps rows for the requested date or range. Continue until the `data` block returns no rows, and advance `start` by the returned row count:
+
+```text
+start = 0
+while true:
+    request with start
+    rows = normalized data block rows
+    stop when rows is empty
+    start = start + len(rows)
+```
+
+Keep `limit` route-dependent where supported; do not promise one universal maximum.
 
 ## Fields
 
@@ -104,28 +119,11 @@ For `m_5`, `m_15`, `m_30`, and `h_1`, positions are:
 
 Treat this as historical context after similar anomalies, not a forecast.
 
-## Chart-Ready Recipes
+## Output Patterns
 
-Alert timeline:
+- Produce `.csv` or normalized JSON tables when the user wants data handoff to another tool.
+- Create a simple self-contained HTML chart when the user asks for browser output.
+- Use pandas or Matplotlib plotting when the user asks for notebook/script output.
+- Use the project's existing charting stack when working inside an app.
 
-```text
-x = tradedate + " " + tradetime
-series = alert_type
-y = value
-threshold_line = threshold
-```
-
-Frequency heatmap:
-
-```text
-rows = secid
-columns = alert_type
-values = count(*)
-```
-
-Threshold breach:
-
-```text
-breach_abs = abs(value - threshold)
-breach_ratio = value / threshold
-```
+Let the requested analysis decide whether to show a timeline, frequency table, threshold comparison, or another view.

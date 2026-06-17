@@ -2,14 +2,20 @@
 
 ## Imports and Auth
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market, Ticker
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
-When `session.TOKEN` is set, the library uses `https://apim.moex.com/iss` and adds `Authorization: Bearer ...`. Without it, the library uses public ISS.
+Set `APIKEY=...` in a local `.env` file and keep that file out of source control. When `session.TOKEN` is set, the library uses `https://apim.moex.com/iss` and adds `Authorization: Bearer ...`; this is needed for real-time, fully up-to-date, or subscriber-only data. Without it, the library uses public ISS, which can be delayed or limited.
 
 ## Markets and Boards
 
@@ -75,11 +81,16 @@ Ticker.orderbook(native=False)
 
 Futures ticker trades accept the first argument as `recno`; stock and currency ticker trades use `tradeno`.
 
-## Field Selection Behavior
+## Securities vs Marketdata Blocks
 
-`tickers` and `marketdata` normalize raw `SECID` to `ticker` and `BOARDID` to `board`. Even when requesting a small field list, the returned DataFrame can still include `ticker` and `board` if those source columns are present.
+- `Market.tickers(...)` reads the ISS `securities` block. Use it for metadata such as `minstep`, `lotsize`, `stepprice`, `shortname`, and `sectype`.
+- `Market.marketdata(...)` reads the ISS `marketdata` block. Use it for quote and session fields such as `last`, `bid`, `offer`, `voltoday`, and `updatetime`.
+- `tickers("*")` means all `securities` fields. `marketdata("*")` means all `marketdata` fields.
+- Custom fields do not cross blocks. Fetch metadata and quotes separately, then join or filter the DataFrames in pandas.
 
-Example matching the repo test style:
+Both methods normalize raw `SECID` to `ticker` and `BOARDID` to `board`. Even when requesting a small field list, the returned DataFrame can still include `ticker` and `board` if those source columns are present.
+
+Example matching the repo test style. `minstep` and `stepprice` come from the `securities` block, while `last` comes from the `marketdata` block, so this must be two library calls:
 
 ```python
 market = Market("futures")
@@ -102,6 +113,10 @@ Library resampled intervals:
 - `"5min"`, `"15min"`, `"20min"`, `"30min"`, `"2h"`, `"3h"`, `"6h"`, `"12h"`, `"5D"`, `"10D"`, `"2W"`, `"4W"`.
 
 Use explicit `start` and `end` for historical candles.
+
+## Pagination and Larger Ranges
+
+Use library parameters, not raw REST parameters. `Ticker.candles(...)` and `Ticker.trades(...)` expose `offset`; do not pass raw ISS `start` to library methods. For larger historical pulls, loop by date/range or call with increasing `offset` where the method supports it. Use direct ISS/REST only when the user needs raw endpoint pagination controls.
 
 ## Important Fields
 
@@ -159,20 +174,7 @@ candles["begin"] = candles["begin"].astype("datetime64[ns]")
 daily_volume = candles.groupby(candles["begin"].dt.date)["volume"].sum()
 ```
 
-Current spread:
-
-```python
-quotes = eq.marketdata("ticker", "bid", "offer")
-quotes["spread"] = quotes["offer"] - quotes["bid"]
-quotes["spread_bps"] = 10000 * quotes["spread"] / ((quotes["offer"] + quotes["bid"]) / 2)
-```
-
-Use `native=True` for lightweight loops:
-
-```python
-for row in eq.marketdata("ticker", "last", native=True):
-    print(row["ticker"], row.get("last"))
-```
+Use DataFrames by default. If the user explicitly asks for iterators or dictionaries, mention `native=True` as the escape hatch.
 
 ## Edge Cases
 

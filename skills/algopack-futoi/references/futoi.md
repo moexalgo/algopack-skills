@@ -2,7 +2,7 @@
 
 ## Scope
 
-FUTOI is futures open interest by participant group. Local docs describe 5-minute snapshots, history from 2020, and FIZ/YUR segmentation for the futures market. Access is plan-dependent; local docs conflict between 15-minute delayed access and T-15-day starter/free availability, so do not promise a specific delay window without checking current entitlement.
+FUTOI is futures open interest by participant group. Local docs describe 5-minute snapshots, history from 2020, and FIZ/YUR segmentation for the futures market. It is not equities, FX, options, individual trader data, or exact single-contract FIZ/YUR positioning. Access is plan-dependent; local docs conflict between 15-minute delayed access and T-15-day starter/free availability, so do not promise a specific delay window without checking current entitlement.
 
 ## Endpoints
 
@@ -29,7 +29,7 @@ For chart files, request `.csv` instead of `.json`.
 
 ## Response Block
 
-FUTOI JSON uses the `futoi` block:
+FUTOI JSON uses the `futoi` block. Normalize `columns` plus `data` into rows before filtering, writing tables, or charting:
 
 ```javascript
 const block = payload.futoi;
@@ -37,6 +37,21 @@ const rows = block.data.map((row) =>
   Object.fromEntries(block.columns.map((name, index) => [name.toLowerCase(), row[index]]))
 );
 ```
+
+## Pagination
+
+Use `start` if a FUTOI route caps rows for the requested range. Continue until the `futoi` block returns no rows, and advance `start` by the returned row count:
+
+```text
+start = 0
+while true:
+    request with start
+    rows = normalized futoi block rows
+    stop when rows is empty
+    start = start + len(rows)
+```
+
+Keep `limit` route-dependent where supported; do not promise one universal maximum.
 
 ## Fields
 
@@ -64,36 +79,11 @@ const rows = block.data.map((row) =>
 - Zero net positions are excluded from participant counts.
 - Rows do not identify individual traders and should not be used to infer individual behavior.
 
-## Chart-Ready Recipes
+## Output Patterns
 
-FIZ/YUR net-position line chart:
+- Produce `.csv` or normalized JSON tables when the user wants data handoff to another tool.
+- Create a simple self-contained HTML chart when the user asks for browser output.
+- Use pandas or Matplotlib plotting when the user asks for notebook/script output.
+- Use the project's existing charting stack when working inside an app.
 
-```text
-x = tradedate + " " + tradetime
-series = clgroup
-y = pos
-```
-
-Gross long/short chart:
-
-```text
-long_y = pos_long
-short_y = abs(pos_short)
-facet_or_color = clgroup
-```
-
-Participant-count chart:
-
-```text
-long_count = pos_long_num
-short_count = pos_short_num
-```
-
-Average contracts per participant:
-
-```text
-avg_long = pos_long / pos_long_num
-avg_short = abs(pos_short) / pos_short_num
-```
-
-Guard against division by zero and missing rows when plotting.
+Let the user's requested analysis decide whether to show net position, gross long/short, participant counts, or another field combination. Guard against division by zero and missing rows when deriving ratios.

@@ -1,6 +1,6 @@
 ---
 name: moexalgo-market-data
-description: Python moexalgo library workflows for Market and Ticker market data, session.TOKEN, pandas DataFrames, tickers, marketdata, info, candles, trades, orderbook, market aliases, board overrides, field selection, native mode, and basic EQ/FO/FX data analysis.
+description: Python moexalgo library workflows for Market and Ticker market data, .env session.TOKEN setup, pandas DataFrames, tickers metadata, marketdata quotes, info, candles, trades, orderbook, market aliases, board overrides, field selection, offset pagination, native-mode escape hatches, and basic EQ/FO/FX data analysis.
 ---
 
 # MOEXAlgo Market Data
@@ -11,10 +11,16 @@ Use this skill when the user wants the `moexalgo` Python package, pandas-style D
 
 ## Quick Start
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market, Ticker
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 
 eq = Market("EQ")
@@ -30,15 +36,16 @@ book = sber.orderbook()
 
 ## Core Workflow
 
-1. Set `session.TOKEN` from an environment variable when subscriber access is needed.
-2. Use `Market("EQ"|"FO"|"FX")` for market-wide rows and `Ticker("SBER")` for one instrument.
-3. Pass explicit field names for compact DataFrames; pass `"*"` for schema discovery.
-4. Use `board=...` only after metadata shows a non-default board is required.
-5. Use `native=True` only when the user wants iterators/dicts instead of DataFrames.
+1. Install `moexalgo[dataframe]` and `python-dotenv` for DataFrame output and `.env` loading.
+2. Store `APIKEY` in `.env`, call `load_dotenv()`, then set `session.TOKEN` from `os.environ["APIKEY"]` when real-time, fully up-to-date, or subscriber-only access is needed.
+3. Use `Market("EQ"|"FO"|"FX")` for market-wide rows and `Ticker("SBER")` for one instrument.
+4. Keep metadata and quotes separate: `tickers(...)` reads the ISS `securities` block, while `marketdata(...)` reads the ISS `marketdata` block.
+5. Pass explicit field names for compact DataFrames; use `tickers("*")` for all `securities` fields and `marketdata("*")` for all `marketdata` fields.
+6. Use `board=...` only after metadata shows a non-default board is required.
 
 ## References
 
-Read `references/market-data.md` for signatures, aliases, fields, candle periods, board caveats, and DataFrame examples.
+Read `references/market-data.md` for signatures, aliases, `securities` versus `marketdata` fields, candle periods, board caveats, pagination, and DataFrame examples.
 
 ## Boundary
 

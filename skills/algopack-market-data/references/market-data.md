@@ -5,7 +5,7 @@
 - Public ISS: `https://iss.moex.com/iss`
 - Authenticated ALGOPACK gateway: `https://apim.moex.com/iss`
 
-Use the authenticated host plus `Authorization: Bearer ${APIKEY}` for subscriber real-time access. Public ISS routes may return delayed data, limited fields, or 403 for subscriber-only blocks.
+Use the authenticated host plus `Authorization: Bearer ${APIKEY}` for real-time or fully up-to-date subscriber data. Public ISS routes may return delayed data, limited fields, or 403 for subscriber-only blocks.
 
 ## Market Routes
 
@@ -87,7 +87,7 @@ curl -L "https://apim.moex.com/iss/engines/futures/markets/forts/boards/RFUD/sec
 
 ## Response Parsing
 
-ISS JSON blocks contain `columns` and `data` arrays. For candles:
+ISS JSON blocks contain `columns` and `data` arrays. Normalize the target block into rows before filtering, joining, writing CSV/JSON, or charting:
 
 ```javascript
 const block = payload.candles;
@@ -100,14 +100,18 @@ For all-securities routes, read both `securities` and `marketdata` blocks when t
 
 ## Pagination
 
-Repeat with increasing `start` until the target block returns no rows:
+Use `start` for endpoints that cap rows. Continue until the target block returns no rows, and advance `start` by the returned row count rather than by a guessed fixed page size:
 
-```bash
-curl -L "https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/SBER/candles.json?from=2025-01-01&till=2025-12-31&interval=60&start=0"
-curl -L "https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/SBER/candles.json?from=2025-01-01&till=2025-12-31&interval=60&start=500"
+```text
+start = 0
+while true:
+    request with start
+    rows = normalized target block rows
+    stop when rows is empty
+    start = start + len(rows)
 ```
 
-Do not assume a fixed page size across routes. Count returned rows and advance by that count.
+Keep `limit` route-dependent where supported; do not promise one universal maximum.
 
 ## Important Fields
 
@@ -134,21 +138,11 @@ Order book:
 
 - `BUYSELL`, `PRICE`, `QUANTITY`, `SEQNUM`, `UPDATETIME`.
 
-## Chart-Ready Recipes
+## Output Patterns
 
-For OHLC charts, request `.csv` candles and use `begin`, `open`, `high`, `low`, `close`, and `volume`.
+- Produce `.csv` or normalized JSON tables when the user wants data handoff to another tool.
+- Create a simple self-contained HTML chart when the user asks for browser output.
+- Use pandas or Matplotlib plotting when the user asks for notebook/script output.
+- Use the project's existing charting stack when working inside an app.
 
-For quote dashboards, request:
-
-```text
-iss.only=marketdata&marketdata.columns=SECID,LAST,BID,OFFER,VOLTODAY,VALTODAY,UPDATETIME
-```
-
-For spread charts, compute:
-
-```text
-spread = offer - bid
-spread_bps = 10000 * (offer - bid) / ((offer + bid) / 2)
-```
-
-For intraday trade dots, request `trades.json` and plot `TRADETIME` versus `PRICE`, sizing by `QUANTITY` or `VALUE`.
+Let the user's requested chart determine which fields to keep. Do not force a fixed visualization when a table or different chart answers the request better.

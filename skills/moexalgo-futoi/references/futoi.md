@@ -2,14 +2,20 @@
 
 ## Imports and Auth
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market, Ticker
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
-FUTOI access is plan-dependent. Local docs conflict between 15-minute delayed and T-15-day starter/free availability, so do not promise a specific delay window without checking current entitlement.
+FUTOI access is plan-dependent. Local docs conflict between 15-minute delayed and T-15-day starter/free availability, so do not promise a specific delay window without checking current entitlement. FUTOI is futures-only; it is not equities, FX, options, individual trader data, or exact single-contract FIZ/YUR positioning.
 
 ## Method Signatures
 
@@ -21,6 +27,10 @@ Ticker(...).futoi(start=None, end=None, native=False)
 Pass explicit dates. In the current repo code, omitting `date` on market methods or `start`/`end` on ticker methods reaches `prepare_from_till_dates(...)` and raises instead of silently using today.
 
 FUTOI is implemented only for the futures market. `Ticker(...).futoi(...)` resolves the ticker to the FUTOI identifier used by the endpoint. Perpetual futures such as `USDRUBF`, `EURRUBF`, `CNYRUBF`, `IMOEXF`, `GLDRUBF`, `SBERF`, and `GAZPF` are handled specially by the library.
+
+## Library Parameter Caveats
+
+FUTOI library methods do not expose `latest` or `offset`. For larger spans, loop by explicit date/range at the library level. Use the direct FUTOI REST endpoint when the user needs raw endpoint controls such as `latest`, `start`, or route-specific `limit`.
 
 ## Examples
 
@@ -38,11 +48,7 @@ si = Ticker("SiH5")
 df = si.futoi(start="2025-01-10", end="2025-01-10")
 ```
 
-Use `native=True` for dictionaries:
-
-```python
-rows = list(fo.futoi(date="2025-01-10", native=True))
-```
+Use DataFrames by default. If the user explicitly asks for iterators or dictionaries, mention `native=True` as the escape hatch.
 
 ## Fields
 
@@ -70,35 +76,28 @@ rows = list(fo.futoi(date="2025-01-10", native=True))
 - Zero net positions are excluded from participant counts.
 - Do not infer individual identities or exact single-contract FIZ/YUR splits from aggregate rows.
 
-## DataFrame Analysis
+## DataFrame Workflows
 
-Latest FIZ/YUR net position by ticker:
+Build the table or chart from the fields the user requested. Start by creating a timestamp column when the output needs ordering or plotting:
 
 ```python
 df = Market("FO").futoi(date="2025-01-10")
-latest_time = df["tradetime"].max()
-latest = df[df["tradetime"] == latest_time]
-pivot = latest.pivot_table(index="ticker", columns="clgroup", values="pos", aggfunc="sum")
+df["datetime"] = df["tradedate"].astype(str) + " " + df["tradetime"].astype(str)
 ```
 
-Gross long/short and participant counts:
+Select requested fields for handoff:
 
 ```python
 df = Ticker("SiH5").futoi(start="2025-01-10", end="2025-01-10")
-df["gross_total"] = df["pos_long"] + df["pos_short"].abs()
-df["long_share"] = df["pos_long"] / df["gross_total"].replace(0, float("nan"))
+table = df[["tradedate", "tradetime", "ticker", "clgroup", "pos", "pos_long", "pos_short"]]
 ```
 
-Average contracts per participant:
+Use pandas groupbys or pivots only when the user asks for an aggregate:
 
 ```python
-df["avg_long_per_participant"] = df["pos_long"] / df["pos_long_num"].replace(0, float("nan"))
-df["avg_short_per_participant"] = df["pos_short"].abs() / df["pos_short_num"].replace(0, float("nan"))
+latest_time = df["tradetime"].max()
+latest = df[df["tradetime"] == latest_time]
+by_group = latest.groupby(["ticker", "clgroup"], as_index=False)["pos"].sum()
 ```
 
-Time series for charting:
-
-```python
-df["datetime"] = df["tradedate"].astype(str) + " " + df["tradetime"].astype(str)
-chart = df[["datetime", "ticker", "clgroup", "pos", "pos_long", "pos_short", "pos_long_num", "pos_short_num"]]
-```
+Guard against division by zero and missing rows when deriving ratios.

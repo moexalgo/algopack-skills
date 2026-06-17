@@ -2,11 +2,17 @@
 
 ## Imports and Auth
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import json
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market, Ticker
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
@@ -20,6 +26,10 @@ Ticker(...).alerts(start=None, end=None, latest=None, offset=None, native=False)
 ```
 
 Pass explicit dates. In the current repo code, omitting `date` on market methods or `start`/`end` on ticker methods reaches `prepare_from_till_dates(...)` and raises instead of silently using today. Use `Market("EQ")` or `Market("FO")` unless current data proves another market is populated and entitled.
+
+## Pagination and Larger Ranges
+
+Use library parameters, not raw REST parameters. Mega Alerts library methods use `offset`, not `start`. Market-wide methods internally page up to the library's market call limit; ticker methods use a smaller ticker call limit. For larger ranges, loop by date/range or call with increasing `offset` where supported. Use direct REST only when the user needs raw endpoint controls such as route-specific `start` or `limit`.
 
 ## Examples
 
@@ -134,3 +144,5 @@ Daily alert pivot:
 ```python
 daily = alerts.pivot_table(index="tradedate", columns="alert_type", values="ticker", aggfunc="count", fill_value=0)
 ```
+
+Use DataFrames by default. If the user explicitly asks for iterators or dictionaries, mention `native=True` as the escape hatch.

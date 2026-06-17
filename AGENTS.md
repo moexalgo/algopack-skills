@@ -5,14 +5,30 @@ adding skills, follow these rules.
 
 ## Repo structure
 
-- Each top-level `algopack-*` directory is one skill.
+- Runtime skills live under `skills/`.
+- Each direct child of `skills/` is one skill.
 - Each skill directory must contain `SKILL.md`.
 - The skill directory name must exactly match the `name` in that skill's
-  frontmatter, for example `algopack-market-data/` and
+  frontmatter, for example `skills/algopack-market-data/` and
   `name: algopack-market-data`.
 - Keep long supporting material in the skill's `references/` directory.
 - `docs/` contains maintainer source material and is not part of the skill
   runtime surface.
+
+## Skill families
+
+- `algopack-*` skills cover direct REST/ISS workflows for users working through
+  an LLM: browser URLs, curl, raw JSON/CSV/HTML output, ISS `columns` + `data`
+  normalization, and `start` pagination.
+- `moexalgo-*` skills cover Python `moexalgo` library workflows:
+  `Market`/`Ticker` helpers, DataFrame-first examples, `.env` token setup,
+  library parameters such as `offset`, and library-specific caveats.
+- `moex-iss` covers generic ISS and ISS+ mechanics that are not specific to one
+  ALGOPACK dataset: discovery, calendars, boardgroups, response formats,
+  pagination, and websocket/STOMP concepts.
+- Keep intent split. Do not put Python library quick starts in direct REST
+  skills, and do not use raw REST pagination parameters as `moexalgo` library
+  examples unless explaining a direct REST fallback.
 
 ## SKILL.md requirements
 
@@ -36,6 +52,9 @@ adding skills, follow these rules.
 - Use direct ISS or REST examples only when the skill scope is raw endpoints,
   calendar/discovery work, unsupported APIs, or non-Python integration.
 - Use `APIKEY` in examples and never include real credentials.
+- Tell users plainly when real-time, fully up-to-date, or subscriber-only data
+  requires a valid token and product entitlement; public ISS data can be delayed
+  or limited.
 - Keep examples copy-pasteable and minimal. Import `session`, `Market`, and
   `Ticker` only when used.
 - State access or subscription requirements when a workflow may fail with
@@ -57,9 +76,9 @@ adding skills, follow these rules.
 
 ## Validation
 
-- Run `find . -maxdepth 2 -name SKILL.md -print | sort` to verify skill
+- Run `find skills -maxdepth 2 -name SKILL.md -print | sort` to verify skill
   locations.
-- Run `rg -n "^name:|^description:" */SKILL.md` to inspect skill metadata.
+- Run `rg -n "^name:|^description:" skills/*/SKILL.md` to inspect skill metadata.
 - Confirm each `references/` path mentioned from `SKILL.md` exists.
 
 ## References

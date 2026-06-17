@@ -17,19 +17,27 @@ curl -L "https://apim.moex.com/iss/datashop/algopack/eq/obstats.json?date=2025-0
 
 Python library pattern:
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 
 eq = Market("EQ")
 data = eq.obstats(date="2025-01-10")
 ```
 
-Setting `session.TOKEN` switches the library base URL to `https://apim.moex.com/iss` and adds `Authorization: Bearer ...`.
+Set `APIKEY=...` in a local `.env` file and keep that file out of source control. Setting `session.TOKEN` switches the library base URL to `https://apim.moex.com/iss` and adds `Authorization: Bearer ...`.
 
 ## Access Levels
+
+It is fine to tell users plainly that real-time or fully up-to-date data requires a valid bearer token and the relevant product entitlement. Public ISS data can be delayed, limited by fields, or unavailable for subscriber-only datasets.
 
 Known local product guidance:
 

@@ -2,10 +2,16 @@
 
 ## Imports and Auth
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market, Ticker
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
@@ -37,7 +43,11 @@ Ticker(...).orderstats(start=None, end=None, latest=None, offset=None, native=Fa
 Ticker(...).obstats(start=None, end=None, latest=None, offset=None, native=False)
 ```
 
-Pass explicit dates. In the current repo code, omitting `date` on market methods or `start`/`end` on ticker methods reaches `prepare_from_till_dates(...)` and raises instead of silently using today. Library pagination uses `offset` and internal limits. Market methods request up to 50,000 rows; ticker methods request up to 10,000 rows per call.
+Pass explicit dates. In the current repo code, omitting `date` on market methods or `start`/`end` on ticker methods reaches `prepare_from_till_dates(...)` and raises instead of silently using today.
+
+## Pagination and Larger Ranges
+
+Use library parameters, not raw REST parameters. SuperCandles library methods use `offset`, not `start`. Market-wide methods internally page up to the library's market call limit; ticker methods use a smaller ticker call limit. For larger ranges, loop by date/range or call with increasing `offset` where supported. Use direct REST only when the user needs raw endpoint controls such as route-specific `start` or `limit`.
 
 ## Examples
 
@@ -103,44 +113,25 @@ EQ core:
 
 FO/FX rows can include `mid_price`, `micro_price`, level-specific spreads, cumulative depths, and level-specific VWAP fields.
 
-## DataFrame Analysis
+## DataFrame Workflows
 
-VWAP and pressure:
+Build the table or chart from the fields the user requested. Start by creating a timestamp column when the output needs ordering or plotting:
 
 ```python
 df = Ticker("SBER").tradestats(start="2025-01-01", end="2025-01-31")
 df["datetime"] = df["tradedate"].astype(str) + " " + df["tradetime"].astype(str)
-pressure = df[["datetime", "ticker", "pr_close", "pr_vwap", "disb", "vol", "trades"]]
 ```
 
-Daily VWAP summary:
+Select only the requested columns for handoff:
 
 ```python
-daily = (
-    df.assign(weighted_value=df["pr_vwap"] * df["vol"])
-      .groupby("tradedate")
-      .agg(vol=("vol", "sum"), value=("weighted_value", "sum"), disb=("disb", "mean"))
-)
-daily["vwap"] = daily["value"] / daily["vol"]
+table = df[["datetime", "ticker", "pr_open", "pr_high", "pr_low", "pr_close", "vol"]]
 ```
 
-Order churn:
+Use pandas aggregations only when the user asks for an aggregate:
 
 ```python
-orders = Ticker("SBER").orderstats(start="2025-01-01", end="2025-01-31")
-orders["cancel_to_put"] = orders["cancel_orders"] / orders["put_orders"].replace(0, float("nan"))
+daily = df.groupby("tradedate", as_index=False).agg(vol=("vol", "sum"), trades=("trades", "sum"))
 ```
 
-Liquidity:
-
-```python
-book = Ticker("SBER").obstats(start="2025-01-01", end="2025-01-31")
-liquidity = book[["tradedate", "tradetime", "spread_bbo", "imbalance_vol", "vol_b", "vol_s"]]
-```
-
-Market-wide strongest imbalance:
-
-```python
-market = Market("EQ").obstats(date="2025-01-10", latest=True)
-top = market.reindex(market["imbalance_vol"].abs().sort_values(ascending=False).index).head(20)
-```
+Use pandas or Matplotlib plotting for notebook/script output, and the project's existing charting stack inside an app. Avoid inventing VWAP, imbalance, churn, or liquidity panels unless the user asks for those metrics.

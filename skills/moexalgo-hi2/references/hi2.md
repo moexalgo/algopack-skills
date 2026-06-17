@@ -2,10 +2,16 @@
 
 ## Imports and Auth
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market, Ticker
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
@@ -29,6 +35,10 @@ Ticker(...).hi2(start=None, end=None, latest=None, offset=None, native=False)
 ```
 
 Pass explicit dates. In the current repo code, omitting `date` on market methods or `start`/`end` on ticker methods reaches `prepare_from_till_dates(...)` and raises instead of silently using today. Market methods request all instruments for one date. Ticker methods request one instrument over a `start`/`end` range. Use `latest=True` when the latest available rows are enough.
+
+## Pagination and Larger Ranges
+
+Use library parameters, not raw REST parameters. HI2 library methods use `offset`, not `start`. Market-wide methods internally page up to the library's market call limit; ticker methods use a smaller ticker call limit. For larger ranges, loop by date/range or call with increasing `offset` where supported. Use direct REST only when the user needs raw endpoint controls such as route-specific `start` or `limit`.
 
 ## Examples
 
@@ -119,3 +129,5 @@ Metric availability check:
 ```python
 available_metrics = sorted(df["metric"].dropna().unique())
 ```
+
+Use DataFrames by default. If the user explicitly asks for iterators or dictionaries, mention `native=True` as the escape hatch.

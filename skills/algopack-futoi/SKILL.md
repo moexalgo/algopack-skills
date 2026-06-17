@@ -1,13 +1,13 @@
 ---
 name: algopack-futoi
-description: Direct ALGOPACK FUTOI API workflows for futures open interest, FIZ/YUR segmentation, long and short participant counts, raw futoi endpoints, browser URLs, curl, JSON/CSV, aggregation caveats, and chart-ready FIZ/YUR tables without Python setup.
+description: Direct ALGOPACK FUTOI API workflows for futures-only open interest, FIZ/YUR segmentation, long and short participant counts, raw futoi endpoints, browser URLs, curl, JSON/CSV handoff, simple HTML output, ISS columns/data normalization, start pagination, and aggregation caveats without Python setup.
 ---
 
 # ALGOPACK FUTOI
 
 ## Overview
 
-Use this skill for direct FUTOI endpoint access and quick FIZ/YUR open-interest charts. FUTOI is futures open interest split by participant group and published as snapshots.
+Use this skill for direct FUTOI endpoint access. FUTOI is futures open interest split by participant group and published as aggregate snapshots; it is not for equities, FX, options, individual trader data, or exact single-contract FIZ/YUR positioning.
 
 ## Quick Start
 
@@ -23,13 +23,14 @@ Use `/securities.json?date=YYYY-MM-DD` for all instruments and `/securities/{tic
 1. Use `FO` tickers or underlyings only.
 2. Fetch rows for a date/range and parse the `futoi` block.
 3. Split by `clgroup`: `FIZ` for individuals, `YUR` for legal entities.
-4. Plot `pos`, `pos_long`, `pos_short`, `pos_long_num`, and `pos_short_num`.
-5. Explain aggregation caveats before making conclusions about specific contracts or participants.
+4. Normalize ISS `columns` plus `data` arrays into rows before filtering, writing tables, or charting.
+5. Match output to the request: CSV/JSON tables for handoff, simple HTML charts for browser output, Matplotlib or pandas plotting for notebook/script output, and the app's existing charting stack inside an app.
+6. Explain aggregation caveats before making conclusions about specific contracts or participants.
 
 ## References
 
-Read `references/futoi.md` for endpoints, fields, aggregation rules, access caveats, and chart recipes.
+Read `references/futoi.md` for endpoints, fields, aggregation rules, access caveats, pagination, and output patterns.
 
 ## Boundary
 
-Do not infer individual trader behavior or exact single-contract FIZ/YUR positioning from aggregate FUTOI rows.
+Do not infer individual trader behavior, equities/FX/options positioning, or exact single-contract FIZ/YUR positioning from aggregate FUTOI rows.

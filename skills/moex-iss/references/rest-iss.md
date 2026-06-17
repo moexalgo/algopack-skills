@@ -18,14 +18,16 @@
 - Public ISS: `https://iss.moex.com/iss`
 - Authenticated ALGOPACK/API gateway: `https://apim.moex.com/iss`
 
-Use `apim.moex.com` plus `Authorization: Bearer ${APIKEY}` for subscriber ALGOPACK datasets. Use `iss.moex.com` for public endpoints when entitlement is not required.
+Use `apim.moex.com` plus `Authorization: Bearer ${APIKEY}` for real-time, fully up-to-date, or subscriber-only ALGOPACK datasets. Use `iss.moex.com` for public endpoints when entitlement is not required; public data can be delayed or limited.
 
 ## requests Example
 
 ```python
 import os
 import requests
+from dotenv import load_dotenv
 
+load_dotenv()
 url = "https://apim.moex.com/iss/datashop/algopack/eq/tradestats/SBER.json"
 headers = {"Authorization": f"Bearer {os.environ['APIKEY']}"}
 params = {"from": "2025-01-01", "till": "2025-01-31", "start": 0}
@@ -44,11 +46,11 @@ curl -L "https://apim.moex.com/iss/datashop/algopack/eq/tradestats/SBER.json?fro
 
 ## Output Formats
 
-Most ISS routes select response format by suffix: `.json`, `.csv`, `.xml`, or `.html`. Keep examples on `.json` for programmatic parsing unless the user explicitly needs another format. If an endpoint is documented without a suffix, append `.json` before writing JSON parsing code.
+Most ISS routes select response format by suffix: `.json`, `.csv`, `.xml`, or `.html`. Keep examples on `.json` for programmatic parsing unless the user explicitly needs another format. Use `.csv` or normalized JSON tables for data handoff, simple HTML charts for browser output, pandas or Matplotlib plotting for notebook/script output, and the project's existing charting stack inside an app. If an endpoint is documented without a suffix, append `.json` before writing JSON parsing code.
 
 ## Response Parsing
 
-ISS JSON blocks usually have `columns` and `data` arrays:
+ISS JSON blocks usually have `columns` and `data` arrays. Normalize the target block into rows before filtering, joining, writing tables, or charting:
 
 ```python
 import pandas as pd
@@ -84,7 +86,7 @@ def fetch_all(url, block_name, headers=None, params=None):
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 ```
 
-Do not assume a max page size. Local notes mention endpoints returning different limits, and SuperCandles raw endpoints can require pagination for full days/ranges.
+Do not assume a max page size. Local notes mention endpoints returning different limits, and SuperCandles raw endpoints can require pagination for full days/ranges. Keep `limit` route-dependent where supported; do not promise one universal maximum.
 
 ## Common Endpoint Patterns
 

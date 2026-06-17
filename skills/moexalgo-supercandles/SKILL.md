@@ -1,6 +1,6 @@
 ---
 name: moexalgo-supercandles
-description: Python moexalgo library workflows for SuperCandles DataFrames, session.TOKEN, Market.tradestats, Market.orderstats, Market.obstats, Ticker.tradestats, Ticker.orderstats, Ticker.obstats, VWAP, imbalance, liquidity, spread analysis, pivots, groupbys, and EQ/FO/FX analytics.
+description: Python moexalgo library workflows for SuperCandles DataFrames, .env session.TOKEN setup, Market.tradestats, Market.orderstats, Market.obstats, Ticker.tradestats, Ticker.orderstats, Ticker.obstats, field interpretation, offset pagination, pivots, groupbys, and EQ/FO/FX analytics.
 ---
 
 # MOEXAlgo SuperCandles
@@ -11,10 +11,16 @@ Use this skill when the user wants SuperCandles through the `moexalgo` Python pa
 
 ## Quick Start
 
+```bash
+python -m pip install "moexalgo[dataframe]" python-dotenv
+```
+
 ```python
 import os
+from dotenv import load_dotenv
 from moexalgo import session, Market, Ticker
 
+load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 
 eq = Market("EQ")
@@ -33,8 +39,9 @@ book = sber.obstats(start="2025-01-01", end="2025-01-31")
 1. Use `Market("EQ"|"FO"|"FX")` for all instruments by date.
 2. Use `Ticker(...)` for one instrument over `start` and `end`.
 3. Choose `tradestats`, `orderstats`, or `obstats` based on the metric the user needs.
-4. Analyze with pandas groupbys, pivots, ratios, and time-indexed charts.
-5. Use `native=True` only when the user asks for dict iterators.
+4. Analyze with pandas groupbys, pivots, ratios, or plots according to the user's requested output.
+5. Use library `offset` for pagination where supported; do not pass raw REST `start` to library methods.
+6. Keep DataFrames as the default; mention `native=True` only when the user explicitly asks for dict iterators.
 
 ## References
 

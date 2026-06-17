@@ -39,7 +39,7 @@ curl -L "https://apim.moex.com/iss/datashop/algopack/eq/hi2/SBER.csv?from=2025-0
 
 ## Response Block
 
-HI2 JSON uses the `data` block:
+HI2 JSON uses the `data` block. Normalize `columns` plus `data` into rows before filtering, writing tables, or charting:
 
 ```javascript
 const block = payload.data;
@@ -49,6 +49,21 @@ const rows = block.data.map((row) =>
 ```
 
 Raw ISS uses `secid`; user-facing tables can label it `ticker`.
+
+## Pagination
+
+Use `start` if a HI2 route caps rows for the requested date or range. Continue until the `data` block returns no rows, and advance `start` by the returned row count:
+
+```text
+start = 0
+while true:
+    request with start
+    rows = normalized data block rows
+    stop when rows is empty
+    start = start + len(rows)
+```
+
+Keep `limit` route-dependent where supported; do not promise one universal maximum.
 
 ## Fields
 
@@ -86,28 +101,11 @@ Use actual returned metric values when possible. Common names:
 
 These are broad market-structure bands, not trading rules.
 
-## Chart-Ready Recipes
+## Output Patterns
 
-Metric time series:
+- Produce `.csv` or normalized JSON tables when the user wants data handoff to another tool.
+- Create a simple self-contained HTML chart when the user asks for browser output.
+- Use pandas or Matplotlib plotting when the user asks for notebook/script output.
+- Use the project's existing charting stack when working inside an app.
 
-```text
-x = tradedate
-series = metric
-y = value
-filter = secid == requested ticker
-```
-
-Market heatmap:
-
-```text
-rows = secid
-columns = metric
-values = value
-filter = tradedate == requested date
-```
-
-Band labels:
-
-```text
-band = value < 1500 ? "low" : value <= 2500 ? "moderate" : "high"
-```
+Let the requested analysis decide whether to show a time series, market snapshot, banded table, or another view.

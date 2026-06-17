@@ -1,6 +1,6 @@
 ---
 name: moex-iss
-description: MOEX ISS and ISS+ mechanics for raw REST endpoints, public iss.moex.com access, authenticated apim.moex.com access, output formats, iss.only, iss.json, start pagination, response blocks, discovery and history routes, calendars, boardgroups, and websocket/STOMP concepts.
+description: MOEX ISS and ISS+ mechanics for raw REST endpoints, public iss.moex.com access, authenticated apim.moex.com access, output formats, iss.only, iss.json, start pagination by returned row count, response block normalization, discovery and history routes, calendars, boardgroups, and websocket/STOMP concepts.
 ---
 
 # MOEX ISS
@@ -11,11 +11,12 @@ Use this skill for generic MOEX ISS/ISS+ mechanics that are not specific to one 
 
 ## Core Workflow
 
-1. Choose host: `https://iss.moex.com/iss` for public ISS or `https://apim.moex.com/iss` for authenticated subscriber routes.
+1. Choose host: `https://iss.moex.com/iss` for public ISS or `https://apim.moex.com/iss` for authenticated real-time, fully up-to-date, or subscriber-only routes.
 2. Choose format suffix: `.json`, `.csv`, `.xml`, or `.html`.
 3. Use `iss.only` and column filters to keep payloads small.
-4. Parse ISS blocks with `columns` and `data`.
-5. Paginate with `start` until the target block returns no rows.
+4. Normalize ISS `columns` plus `data` arrays into rows before filtering, joining, writing tables, or charting.
+5. Paginate with `start` until the target block returns no rows, advancing by the returned row count.
+6. Match output to the request: CSV/JSON tables for handoff, simple HTML charts for browser output, Matplotlib or pandas plotting for notebook/script output, and the app's existing charting stack inside an app.
 
 ## Quick Start
 

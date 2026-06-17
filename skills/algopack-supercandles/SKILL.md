@@ -1,13 +1,13 @@
 ---
 name: algopack-supercandles
-description: Direct ALGOPACK SuperCandles API workflows for tradestats, orderstats, obstats, 5-minute trade/order/order-book metrics, VWAP, imbalance, liquidity, spreads, EQ/FO/FX endpoints, curl, JSON/CSV, pagination, and chart-ready answers.
+description: Direct ALGOPACK SuperCandles API workflows for tradestats, orderstats, obstats, 5-minute trade/order/order-book metrics, field meanings, EQ/FO/FX endpoints, curl, JSON/CSV handoff, simple HTML output, ISS columns/data normalization, and start pagination.
 ---
 
 # ALGOPACK SuperCandles
 
 ## Overview
 
-Use this skill for raw SuperCandles endpoints and chart-ready 5-minute metrics. Return URLs, `curl`, JSON/CSV guidance, and concise metric interpretation.
+Use this skill for raw SuperCandles endpoints and 5-minute metric fields. Return URLs, `curl`, normalized JSON rows, CSV/JSON handoff guidance, and concise field interpretation.
 
 ## Quick Start
 
@@ -20,15 +20,16 @@ Use `date=YYYY-MM-DD` for all instruments and `from=YYYY-MM-DD&till=YYYY-MM-DD` 
 
 ## Core Workflow
 
-1. Pick the dataset: `tradestats` for trades/VWAP, `orderstats` for order flow, or `obstats` for book liquidity.
+1. Pick the dataset: `tradestats` for trade metrics, `orderstats` for order-flow metrics, or `obstats` for order-book metrics.
 2. Pick the market prefix: `eq`, `fo`, or `fx`.
 3. Use `latest=1` for the newest rows or `start` pagination for full days/ranges.
 4. Normalize raw `secid` to `ticker` in user-facing tables.
-5. For charts, keep time, ticker, close/VWAP, volume, spread, imbalance, and relevant buy/sell split columns.
+5. Normalize ISS `columns` plus `data` arrays into rows before filtering, joining, or charting.
+6. Match output to the request: CSV/JSON tables for handoff, simple HTML charts for browser output, Matplotlib or pandas plotting for notebook/script output, and the app's existing charting stack inside an app.
 
 ## References
 
-Read `references/supercandles.md` for endpoint maps, fields, interpretation notes, limits, and chart recipes.
+Read `references/supercandles.md` for endpoint maps, fields, interpretation notes, limits, pagination, and output patterns.
 
 ## Boundary
 
