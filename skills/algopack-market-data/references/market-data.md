@@ -1,157 +1,154 @@
-# MOEXAlgo Market Data Reference
+# Direct Market Data Reference
 
-## Contents
+## Hosts
 
-- [Imports and Auth](#imports-and-auth)
-- [Markets and Boards](#markets-and-boards)
-- [Field Selection](#field-selection)
-- [Market Methods](#market-methods)
-- [Ticker Methods](#ticker-methods)
-- [Edge Cases](#edge-cases)
-- [Raw Endpoint Map](#raw-endpoint-map)
-- [Important Fields](#important-fields)
-- [DataFrame Snippets](#dataframe-snippets)
+- Public ISS: `https://iss.moex.com/iss`
+- Authenticated ALGOPACK gateway: `https://apim.moex.com/iss`
 
-## Imports and Auth
+Use the authenticated host plus `Authorization: Bearer ${APIKEY}` for subscriber real-time access. Public ISS routes may return delayed data, limited fields, or 403 for subscriber-only blocks.
 
-```python
-import os
-from moexalgo import session, Market, Ticker
+## Market Routes
 
-session.TOKEN = os.environ["APIKEY"]
+| Market | Engine | Market | Board | Common instruments |
+| --- | --- | --- | --- | --- |
+| EQ | `stock` | `shares` | `TQBR` | Shares |
+| FO | `futures` | `forts` | `RFUD` | Futures |
+| FX | `currency` | `selt` | `CETS` | Currency pairs |
+| Index | `stock` | `index` | `SNDX` | Indexes |
+
+Override the board only after checking instrument metadata. Instruments can move boards, and historical ranges may need more than one board route.
+
+## Endpoint Map
+
+All securities and quotes:
+
+```text
+/iss/engines/stock/markets/shares/boards/TQBR/securities.json
+/iss/engines/futures/markets/forts/boards/RFUD/securities.json
+/iss/engines/currency/markets/selt/boards/CETS/securities.json
 ```
 
-All examples return pandas DataFrames by default. Use `native=True` only when the user explicitly wants iterators/dicts.
+One security and quote blocks:
 
-## Markets and Boards
-
-| Alias | Engine/market | Default board | Main methods |
-| --- | --- | --- | --- |
-| `EQ`, `eq`, `shares`, `stocks`, `equity` | `stock/shares` | `TQBR` | `tickers`, `marketdata`, `trades`, `candles`, ALGOPACK methods |
-| `FO`, `fo`, `futures`, `forts` | `futures/forts` | `RFUD` | `tickers`, `marketdata`, `trades`, `candles`, ALGOPACK methods, `futoi` |
-| `FX`, `fx`, `currency`, `selt` | `currency/selt` | `CETS` | `tickers`, `marketdata`, ALGOPACK methods |
-| `index` | `stock/index` | `SNDX` | basic market data |
-| `bonds` | `stock/bonds` | `TQOB` | basic market data |
-| `options` | `futures/options` | `ROPD` | basic market data |
-
-Override a board only when required:
-
-```python
-eq_tqpi = Market("EQ", board="TQPI")
-instrument = Ticker("SOME_TICKER", board="TQPI")
+```text
+/iss/engines/stock/markets/shares/boards/TQBR/securities/{ticker}.json
 ```
 
-## Field Selection
+Ticker time series and current state:
 
-`tickers` and `marketdata` accept positional field names:
-
-```python
-eq = Market("EQ")
-small = eq.tickers("ticker", "shortname", "minstep")
-all_fields = eq.tickers("*")
-quotes = eq.marketdata("ticker", "last", "bid", "offer", "updatetime")
+```text
+/iss/engines/{engine}/markets/{market}/boards/{board}/securities/{ticker}/candles.json
+/iss/engines/{engine}/markets/{market}/boards/{board}/securities/{ticker}/trades.json
+/iss/engines/{engine}/markets/{market}/boards/{board}/securities/{ticker}/orderbook.json
 ```
 
-Field names are normalized to lower-case in DataFrames. `SECID` appears as `ticker`, and `BOARDID` appears as `board`.
+Discovery:
 
-Default share ticker fields include `shortname`, `lotsize`, `decimals`, `minstep`, `issuesize`, `isin`, `regnumber`, `listlevel`.
-
-Default futures ticker fields include `sectype`, `assetcode`, `shortname`, `lotvolume`, `decimals`, `minstep`, `initialmargin`, `lasttradedate`.
-
-Default FX ticker fields include `shortname`, `lotsize`, `decimals`, `minstep`, `secname`.
-
-## Market Methods
-
-```python
-eq = Market("EQ")
-
-tickers = eq.tickers("ticker", "shortname", "minstep")
-marketdata = eq.marketdata("ticker", "last", "bid", "offer")
-trades = eq.trades()
-last_two_market_candles = eq.candles()
+```text
+/iss/securities.json?q={query}
+/iss/securities/{ticker}.json
+/iss/engines/stock/markets/shares/securities.json
+/iss/engines/futures/markets/forts/securities.json
+/iss/engines/currency/markets/selt/securities.json
 ```
 
-`Market.candles()` returns two recent 1-minute candles per instrument, calculated from current-day trades. It is not the same as historical `Ticker.candles(...)`.
+## Common Parameters
 
-## Ticker Methods
+- `iss.only=securities|marketdata|candles|trades|orderbook`: return one block.
+- `{block}.columns=SECID,SHORTNAME,MINSTEP`: reduce columns for a block.
+- `from`, `till`: date or datetime range for candles and history-like endpoints.
+- `interval`: candles interval, commonly `1`, `10`, `60`, `24`, `7`, `31`.
+- `start`: pagination offset.
+- `limit`: route-dependent row limit where supported.
+- `tradeno`: start stock/FX trades after a trade number.
+- `recno`: start futures trades after a record number.
 
-```python
-sber = Ticker("SBER")
+## curl Examples
 
-info = sber.info("ticker", "title", "market", "engine", "decimals")
-trades = sber.trades()
-latest_trade = sber.trades(latest=True)
-orderbook = sber.orderbook()
-candles = sber.candles(start="2025-01-01", end="2025-01-31", period="1h")
+All share quotes with a smaller payload:
+
+```bash
+curl -L "https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?iss.only=marketdata&marketdata.columns=SECID,LAST,BID,OFFER,VOLTODAY,VALTODAY,UPDATETIME"
 ```
 
-Common candle periods:
+Hourly SBER candles as CSV:
 
-- Native ISS intervals: `"1min"`, `"10min"`, `"1h"`, `"1D"`, `"1W"`, `"1M"`, or numeric `1`, `10`, `60`, `24`, `7`, `31`.
-- Library resampled intervals: `"5min"`, `"15min"`, `"20min"`, `"30min"`, `"2h"`, `"3h"`, `"6h"`, `"12h"`, `"5D"`, `"10D"`, `"2W"`, `"4W"`.
+```bash
+curl -L "https://apim.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/SBER/candles.csv?from=2025-01-01&till=2025-01-31&interval=60" \
+  -H "Authorization: Bearer ${APIKEY}"
+```
 
-`Ticker.candles(...)` expects both `start` and `end` for historical ranges. If only one side is known, choose an explicit bounded range instead of relying on implicit defaults.
+Current futures order book:
 
-## Edge Cases
+```bash
+curl -L "https://apim.moex.com/iss/engines/futures/markets/forts/boards/RFUD/securities/SiH5/orderbook.json" \
+  -H "Authorization: Bearer ${APIKEY}"
+```
 
-- Local notes have marked some indexes, including `MOEXIT`, `MOEXRE`, and `MCXSM`, as daily-only, but live ISS availability can differ by ticker/date. Check the raw candles endpoint for the requested interval and do not assume intraday candles exist for every index.
-- Instruments can move between boards, and local notes about specific board moves can become stale. For instruments such as `UWGN`, inspect metadata for the relevant date range, pass `Ticker("UWGN", board="...")` explicitly when needed, and stitch historical data from multiple boards when the range spans a migration.
-- For non-default boards or indexes, inspect raw ISS metadata such as `/iss/securities/{ticker}.json` or board/boardgroup endpoints before assuming the library default board.
+## Response Parsing
 
-## Raw Endpoint Map
+ISS JSON blocks contain `columns` and `data` arrays. For candles:
 
-These are useful for explaining what the library calls:
+```javascript
+const block = payload.candles;
+const rows = block.data.map((row) =>
+  Object.fromEntries(block.columns.map((name, index) => [name.toLowerCase(), row[index]]))
+);
+```
 
-| Workflow | Direct endpoint pattern |
-| --- | --- |
-| EQ securities/marketdata | `/iss/engines/stock/markets/shares/boards/TQBR/securities.json` |
-| FO securities/marketdata | `/iss/engines/futures/markets/forts/boards/RFUD/securities.json` |
-| FX securities/marketdata | `/iss/engines/currency/markets/selt/boards/CETS/securities.json` |
-| Ticker info | `/iss/securities/{ticker}.json` |
-| Ticker candles | `/iss/engines/{engine}/markets/{market}/boards/{board}/securities/{ticker}/candles.json` |
-| Ticker trades | `/iss/engines/{engine}/markets/{market}/boards/{board}/securities/{ticker}/trades.json` |
-| Ticker orderbook | `/iss/engines/{engine}/markets/{market}/boards/{board}/securities/{ticker}/orderbook.json` |
+For all-securities routes, read both `securities` and `marketdata` blocks when the answer needs metadata plus current quote values.
+
+## Pagination
+
+Repeat with increasing `start` until the target block returns no rows:
+
+```bash
+curl -L "https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/SBER/candles.json?from=2025-01-01&till=2025-12-31&interval=60&start=0"
+curl -L "https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/SBER/candles.json?from=2025-01-01&till=2025-12-31&interval=60&start=500"
+```
+
+Do not assume a fixed page size across routes. Count returned rows and advance by that count.
 
 ## Important Fields
 
+Securities:
+
+- `SECID`, `BOARDID`, `SHORTNAME`, `SECNAME`, `LOTSIZE`, `DECIMALS`, `MINSTEP`, `ISIN`, `LISTLEVEL`.
+
 Marketdata:
 
-- `bid`, `offer`: best bid/offer.
-- `biddeptht`, `offerdeptht`: total visible depth.
-- `open`, `high`, `low`, `last`, `waprice`: intraday price fields.
-- `numtrades`, `voltoday`, `valtoday`: activity and turnover.
-- `updatetime`, `systime`: update timestamps.
+- `BID`, `OFFER`: best bid and offer.
+- `OPEN`, `HIGH`, `LOW`, `LAST`, `WAPRICE`: intraday prices.
+- `NUMTRADES`, `VOLTODAY`, `VALTODAY`: current-day activity.
+- `UPDATETIME`, `SYSTIME`: update timestamps.
 
 Candles:
 
-- `open`, `high`, `low`, `close`: OHLC.
-- `volume`: lots/contracts/units depending on market.
-- `value`: turnover value.
-- `begin`, `end`: candle interval.
+- `open`, `high`, `low`, `close`, `volume`, `value`, `begin`, `end`.
 
 Trades:
 
-- `tradeno` or `recno`: sequence key.
-- `tradetime`, `systime`: trade time and system time.
-- `price`, `quantity`, `value`.
-- `buysell`: `B` or `S` where available.
+- `TRADENO` or `RECNO`, `TRADETIME`, `PRICE`, `QUANTITY`, `VALUE`, `BUYSELL`.
 
-Orderbook:
+Order book:
 
-- `buysell`: bid (`B`) or ask (`S`).
-- `price`, `quantity`.
-- `seqnum`, `updatetime`.
+- `BUYSELL`, `PRICE`, `QUANTITY`, `SEQNUM`, `UPDATETIME`.
 
-## DataFrame Snippets
+## Chart-Ready Recipes
 
-```python
-tickers = eq.tickers("ticker", "shortname", "minstep")
-quotes = eq.marketdata("ticker", "last", "bid", "offer")
-joined = tickers.merge(quotes, on="ticker", how="left")
+For OHLC charts, request `.csv` candles and use `begin`, `open`, `high`, `low`, `close`, and `volume`.
+
+For quote dashboards, request:
+
+```text
+iss.only=marketdata&marketdata.columns=SECID,LAST,BID,OFFER,VOLTODAY,VALTODAY,UPDATETIME
 ```
 
-```python
-candles = sber.candles(start="2025-01-01", end="2025-01-31", period="1h")
-candles["begin"] = candles["begin"].astype("datetime64[ns]")
-daily_volume = candles.groupby(candles["begin"].dt.date)["volume"].sum()
+For spread charts, compute:
+
+```text
+spread = offer - bid
+spread_bps = 10000 * (offer - bid) / ((offer + bid) / 2)
 ```
+
+For intraday trade dots, request `trades.json` and plot `TRADETIME` versus `PRICE`, sizing by `QUANTITY` or `VALUE`.

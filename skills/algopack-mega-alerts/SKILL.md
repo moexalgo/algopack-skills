@@ -1,47 +1,34 @@
 ---
 name: algopack-mega-alerts
-description: ALGOPACK Mega Alerts workflows for market anomaly alerts and reference JSON analysis. Use when a user asks for alert types, thresholds, abnormal price/volume/net-volume signals, parsing the reference field, DataFrame analysis of alerts, Market.alerts or Ticker.alerts examples, or raw alerts endpoints.
+description: Direct ALGOPACK Mega Alerts API workflows for market anomaly alerts, alert_type thresholds, reference JSON, EQ/FO alert endpoints, curl, JSON/CSV, abnormal volume or price signals, and chart-ready anomaly tables.
 ---
 
 # ALGOPACK Mega Alerts
 
 ## Overview
 
-Use this skill for ALGOPACK anomaly alerts. Alerts identify unusual market activity from minute-level data and include a `reference` JSON string with historical post-alert behavior.
+Use this skill for direct Mega Alerts endpoint access. Alerts identify unusual market activity and include historical context in the `reference` field.
 
 ## Quick Start
 
-```python
-import json
-import os
-from moexalgo import session, Market, Ticker
-
-session.TOKEN = os.environ["APIKEY"]
-
-eq = Market("EQ")
-alerts = eq.alerts(date="2025-01-10")
-
-sber = Ticker("SBER")
-sber_alerts = sber.alerts(start="2025-01-01", end="2025-03-30")
-
-parsed = sber_alerts["reference"].dropna().map(json.loads)
+```bash
+curl -L "https://apim.moex.com/iss/datashop/algopack/eq/alerts/SBER.json?from=2025-01-01&till=2025-03-30" \
+  -H "Authorization: Bearer ${APIKEY}"
 ```
 
-## Interpretation Rules
+Use `date=YYYY-MM-DD` for market-wide alerts and `from=YYYY-MM-DD&till=YYYY-MM-DD` for one ticker.
 
-- `threshold` is the trigger threshold, often a 99.9 percentile or historical min/max threshold.
-- `value` is the observed value at alert time.
-- `reference` is historical context after similar alerts, not a forecast.
-- Use alert suffixes: `+` for positive/upside direction and `-` for negative/downside direction.
+## Core Workflow
+
+1. Choose market `eq` or `fo` unless current entitlement proves more coverage.
+2. Fetch alerts and parse the `data` block.
+3. Group by `alert_type`, `secid`, and date/time.
+4. Parse `reference` only as historical post-alert context.
+5. Avoid forecast language.
 
 ## References
 
-Read `references/mega-alerts.md` when you need:
-
-- Alert type map and threshold methodology.
-- `reference` JSON schema and parsing examples.
-- Endpoint map and field descriptions.
-- DataFrame examples for summarizing alerts.
+Read `references/mega-alerts.md` for endpoints, alert types, fields, `reference` schema, and chart recipes.
 
 ## Boundary
 

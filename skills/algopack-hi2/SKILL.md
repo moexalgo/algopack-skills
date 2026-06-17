@@ -1,46 +1,35 @@
 ---
 name: algopack-hi2
-description: ALGOPACK HI2/HHI market concentration workflows and interpretation. Use when a user asks for Herfindahl-Hirschman concentration metrics, HI2 daily cadence, interpretation bands, hhi_* metric names, Market.hi2 or Ticker.hi2 examples, market/ticker examples for EQ/FO/FX, or concentration analysis in DataFrames.
+description: Direct ALGOPACK HI2 API workflows for Herfindahl-Hirschman market concentration, hhi_* metrics, daily EQ/FO/FX concentration rows, raw hi2 endpoints, curl, JSON/CSV, interpretation bands, and chart-ready concentration tables.
 ---
 
 # ALGOPACK HI2
 
 ## Overview
 
-Use this skill for ALGOPACK HI2 market concentration data. HI2 values are Herfindahl-Hirschman style concentration metrics calculated daily for supported EQ, FO, and FX instruments.
+Use this skill for direct HI2 endpoint access and concentration analysis. HI2 is a Herfindahl-Hirschman style metric calculated for supported EQ, FO, and FX instruments.
 
 ## Quick Start
 
-```python
-import os
-from moexalgo import session, Market, Ticker
-
-session.TOKEN = os.environ["APIKEY"]
-
-eq = Market("EQ")
-hi2_market = eq.hi2(date="2025-01-10")
-
-sber = Ticker("SBER")
-hi2_sber = sber.hi2(start="2025-01-01", end="2025-01-31")
+```bash
+curl -L "https://apim.moex.com/iss/datashop/algopack/eq/hi2/SBER.json?from=2025-01-01&till=2025-01-31" \
+  -H "Authorization: Bearer ${APIKEY}"
 ```
 
-## Interpretation Bands
+Use `date=YYYY-MM-DD` for all instruments and `from=YYYY-MM-DD&till=YYYY-MM-DD` for one ticker.
 
-- `< 1500`: low concentration / more competitive participation.
-- `1500-2500`: moderate concentration.
-- `> 2500`: high concentration / a few participants dominate the metric.
+## Core Workflow
 
-Treat these as screening bands, not trading rules.
+1. Choose market `eq`, `fo`, or `fx`.
+2. Fetch all instruments by `date` or one ticker by `from`/`till`.
+3. Filter by `metric`, usually `hhi_volume` first.
+4. Apply broad bands: below `1500`, `1500-2500`, above `2500`.
+5. Explain missing rows as possible coverage, date, entitlement, or participant-threshold issues.
 
 ## References
 
-Read `references/hi2.md` when you need:
-
-- Formula, cadence, coverage, and unsupported cases.
-- Full metric names and meanings.
-- Endpoint map for EQ, FO, and FX.
-- DataFrame examples for pivoting and banding HI2 values.
+Read `references/hi2.md` for formula, endpoints, metrics, fields, interpretation bands, and chart recipes.
 
 ## Boundary
 
-If HI2 rows are missing for an instrument/date, explain that calculation may be unavailable when participant counts are below the product threshold or when the instrument is outside coverage.
+Treat HI2 as a screening and market-structure metric, not as a buy/sell signal.

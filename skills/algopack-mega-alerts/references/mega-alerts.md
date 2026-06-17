@@ -1,47 +1,44 @@
-# Mega Alerts Reference
-
-## Contents
-
-- [Scope](#scope)
-- [DataFrame Calls](#dataframe-calls)
-- [Direct Endpoints](#direct-endpoints)
-- [Fields](#fields)
-- [Alert Types](#alert-types)
-- [Threshold Methodology](#threshold-methodology)
-- [Reference JSON](#reference-json)
-- [Analysis Snippets](#analysis-snippets)
+# Direct Mega Alerts Reference
 
 ## Scope
 
-Mega Alerts identify unusual market activity from minute-level data. Local docs describe monitoring over liquid instruments and a 90-day rolling window for thresholds. Documented direct endpoints list EQ and FO; if FX behavior matters, verify the raw endpoint and entitlement before promising coverage.
+Mega Alerts detect abnormal market activity from minute-level data. Local docs describe a rolling historical window for thresholds and documented endpoints for EQ and FO. Some prose mentions FX, but endpoint lists document EQ/FO; verify live rows and entitlement before promising FX coverage.
 
-## DataFrame Calls
+## Endpoints
 
-```python
-import json
-import os
-from moexalgo import session, Market, Ticker
+Use `https://apim.moex.com/iss` with a bearer token.
 
-session.TOKEN = os.environ["APIKEY"]
-
-eq = Market("EQ")
-alerts = eq.alerts(date="2025-01-10")
-
-sber = Ticker("SBER")
-sber_alerts = sber.alerts(start="2025-01-01", end="2025-03-30")
-parsed = sber_alerts["reference"].dropna().map(json.loads)
+```text
+/iss/datashop/algopack/eq/alerts.json?date=YYYY-MM-DD
+/iss/datashop/algopack/eq/alerts/{ticker}.json?from=YYYY-MM-DD&till=YYYY-MM-DD
+/iss/datashop/algopack/fo/alerts.json?date=YYYY-MM-DD
+/iss/datashop/algopack/fo/alerts/{ticker}.json?from=YYYY-MM-DD&till=YYYY-MM-DD
 ```
 
-In `moexalgo` DataFrames, raw ISS `secid` is normalized to `ticker`.
+Examples:
 
-## Direct Endpoints
+```bash
+curl -L "https://apim.moex.com/iss/datashop/algopack/eq/alerts.json?date=2025-01-10" \
+  -H "Authorization: Bearer ${APIKEY}"
+```
 
-- `/iss/datashop/algopack/eq/alerts[/{ticker}].json`
-- `/iss/datashop/algopack/fo/alerts[/{ticker}].json`
+```bash
+curl -L "https://apim.moex.com/iss/datashop/algopack/eq/alerts/SBER.csv?from=2025-01-01&till=2025-03-30" \
+  -H "Authorization: Bearer ${APIKEY}"
+```
 
-Only EQ and FO alert endpoints are documented in local endpoint lists. Wiki prose has mentioned FX, but local Q&A confirms the documented API values are EQ/FO. A live FX route may respond but still lack populated coverage, so verify rows and entitlement before promising FX alerts.
+## Response Block
 
-For market-wide calls, use `date=YYYY-MM-DD`. For ticker calls, use `from=YYYY-MM-DD&till=YYYY-MM-DD`.
+Alerts JSON uses the `data` block:
+
+```javascript
+const block = payload.data;
+const rows = block.data.map((row) =>
+  Object.fromEntries(block.columns.map((name, index) => [name.toLowerCase(), row[index]]))
+);
+```
+
+Raw ISS uses `secid`; user-facing tables can label it `ticker`.
 
 ## Fields
 
@@ -49,10 +46,10 @@ For market-wide calls, use `date=YYYY-MM-DD`. For ticker calls, use `from=YYYY-M
 | --- | --- |
 | `tradedate` | Date |
 | `tradetime` | Alert time |
-| `ticker` | Instrument id in `moexalgo` DataFrames; raw ISS uses `secid` |
+| `secid` | Instrument id |
 | `alert_type` | Anomaly code |
 | `threshold` | Trigger threshold |
-| `value` | Observed value at alert time |
+| `value` | Observed value |
 | `reference` | JSON string with historical post-alert statistics |
 | `systime` | Load/system time |
 
@@ -63,13 +60,13 @@ Volume:
 - `vol_s_99_9_pctl`: sell volume exceeded 99.9 percentile.
 - `vol_b_99_9_pctl`: buy volume exceeded 99.9 percentile.
 - `vol_99_9_pctl`: total volume exceeded 99.9 percentile.
-- `vol_s_max`, `vol_b_max`, `vol_max`: 90-day historical max events.
+- `vol_s_max`, `vol_b_max`, `vol_max`: recent historical max events.
 
 Net volume:
 
 - `net_vol_99_9_pctl-`: negative net volume exceeded threshold.
 - `net_vol_99_9_pctl+`: positive net volume exceeded threshold.
-- `net_vol_min`, `net_vol_max`: historical min/max net volume events.
+- `net_vol_min`, `net_vol_max`: historical min/max net-volume events.
 
 Price change:
 
@@ -79,18 +76,12 @@ Price change:
 
 Price levels:
 
-- `pr_high_max`: 90-day high reached.
-- `pr_low_min`: 90-day low reached.
-
-## Threshold Methodology
-
-- `_99_9_pctl` alerts compare the current minute metric with a 99.9 percentile threshold from recent historical minute data.
-- `_min` and `_max` alerts compare current values with recent historical extremes.
-- Thresholds are recalculated from a rolling historical window, documented locally as 90 days.
+- `pr_high_max`: recent high reached.
+- `pr_low_min`: recent low reached.
 
 ## Reference JSON
 
-`reference` is a JSON string. After `json.loads`, local examples show a list with one object:
+`reference` is a JSON string. Local examples show a list containing one object:
 
 ```json
 [{
@@ -103,7 +94,7 @@ Price levels:
 }]
 ```
 
-For `m_5`, `m_15`, `m_30`, `h_1`, the five positions are:
+For `m_5`, `m_15`, `m_30`, and `h_1`, positions are:
 
 1. Average price change when price rose, percent.
 2. Average price change when price fell, percent.
@@ -111,39 +102,30 @@ For `m_5`, `m_15`, `m_30`, `h_1`, the five positions are:
 4. Count of falling cases.
 5. Average change across all observations, percent.
 
-This is historical context after similar anomalies, not a prediction.
+Treat this as historical context after similar anomalies, not a forecast.
 
-## Analysis Snippets
+## Chart-Ready Recipes
 
-Safely parse references:
+Alert timeline:
 
-```python
-import json
-import pandas as pd
-
-def parse_reference(value):
-    if not value:
-        return {}
-    try:
-        data = json.loads(value)
-    except (TypeError, json.JSONDecodeError):
-        return {}
-    return data[0] if data else {}
-
-refs = alerts["reference"].map(parse_reference)
-ref_df = pd.json_normalize(refs)
-combined = alerts.join(ref_df.add_prefix("ref_"))
+```text
+x = tradedate + " " + tradetime
+series = alert_type
+y = value
+threshold_line = threshold
 ```
 
-Summarize alert frequency:
+Frequency heatmap:
 
-```python
-counts = alerts.groupby(["ticker", "alert_type"]).size().sort_values(ascending=False)
+```text
+rows = secid
+columns = alert_type
+values = count(*)
 ```
 
-Inspect strongest threshold breaches:
+Threshold breach:
 
-```python
-alerts["breach_abs"] = (alerts["value"] - alerts["threshold"]).abs()
-top = alerts.sort_values("breach_abs", ascending=False).head(20)
+```text
+breach_abs = abs(value - threshold)
+breach_ratio = value / threshold
 ```
