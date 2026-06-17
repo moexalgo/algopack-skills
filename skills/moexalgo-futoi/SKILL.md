@@ -9,6 +9,8 @@ description: Python moexalgo library workflows for futures-only FUTOI DataFrames
 
 Use this skill when the user wants FUTOI through the `moexalgo` Python package and DataFrame analysis.
 
+Access note: `Стартовый / Starter` free-token access has FUTOI delayed at `T - 15 days`; `Promo` has fuller/online access, subject to current entitlement.
+
 ## Quick Start
 
 ```bash

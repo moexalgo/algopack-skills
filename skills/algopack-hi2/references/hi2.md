@@ -12,6 +12,8 @@ where `s_i` is a participant share in percent. Shares of 50, 30, and 20 produce 
 
 Local docs describe daily calculation near the end of the trading day for supported shares, futures, and currency instruments. If too few participants trade an instrument, HI2 may not be calculated for that date.
 
+`Promo` includes HI2. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; if users see `403`, empty data, non-JSON responses, or missing rows, verify current entitlement and current DataShop terms before promising access.
+
 ## Endpoints
 
 Use `https://apim.moex.com/iss` with a bearer token.

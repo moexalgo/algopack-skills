@@ -5,7 +5,7 @@
 - Public ISS: `https://iss.moex.com/iss`
 - Authenticated ALGOPACK gateway: `https://apim.moex.com/iss`
 
-Use the authenticated host plus `Authorization: Bearer ${APIKEY}` for real-time or fully up-to-date subscriber data. Public ISS routes may return delayed data, limited fields, or 403 for subscriber-only blocks.
+Use the authenticated host plus `Authorization: Bearer ${APIKEY}` for plan-entitled ALGOPACK data. `Стартовый / Starter` free-token access includes 15-minute delayed candles and trades; `Promo` includes online order books, candles, and trades. Public ISS routes may return delayed data, limited fields, or 403 for subscriber-only blocks.
 
 ## Market Routes
 

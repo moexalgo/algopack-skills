@@ -9,6 +9,8 @@ description: Direct ALGOPACK HI2 API workflows for Herfindahl-Hirschman market c
 
 Use this skill for direct HI2 endpoint access and concentration analysis. HI2 is a Herfindahl-Hirschman style metric calculated for supported EQ, FO, and FX instruments.
 
+Access note: `Promo` includes HI2. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; verify current access before promising it.
+
 ## Quick Start
 
 ```bash

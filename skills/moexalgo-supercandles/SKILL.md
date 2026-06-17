@@ -9,6 +9,8 @@ description: Python moexalgo library workflows for SuperCandles DataFrames, .env
 
 Use this skill when the user wants SuperCandles through the `moexalgo` Python package and DataFrame analysis.
 
+Access note: `Promo` includes SuperCandles. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; verify current access before promising it.
+
 ## Quick Start
 
 ```bash

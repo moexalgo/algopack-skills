@@ -1,6 +1,6 @@
 # ISS Calendar Reference
 
-Use direct ISS for trading calendars. Local docs state calendar methods support `from`, `till`, and pagination through `start`; some endpoints support `show_all_days=1` and `iss.only`. If a calendar URL returns `text/html` rather than JSON, verify the current route in the live ISS reference before relying on that endpoint.
+Use direct ISS for trading calendars. Local docs state calendar methods support `from`, `till`, and pagination through `start`; some endpoints support `show_all_days=1` and `iss.only`. ALGOPACK `Promo` includes a machine-readable calendar, but do not imply every public ISS calendar route requires `Promo`. If a calendar URL returns `text/html` rather than JSON, verify the current route in the live ISS reference before relying on that endpoint.
 
 ## All Markets Off Days
 

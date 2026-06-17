@@ -9,6 +9,8 @@ description: Direct ALGOPACK Mega Alerts API workflows for market anomaly alerts
 
 Use this skill for direct Mega Alerts endpoint access. Alerts identify unusual market activity and include historical context in the `reference` field.
 
+Access note: `Promo` includes Mega Alerts. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; verify current access before promising it.
+
 ## Quick Start
 
 ```bash

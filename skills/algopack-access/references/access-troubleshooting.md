@@ -3,7 +3,8 @@
 ## Subscription and Key Setup
 
 - Register and sign in at DataShop: `https://data.moex.com`.
-- Subscribe to ALGOPACK from the product page: `https://data.moex.com/products/algopack`.
+- Choose the currently available access level on Data MOEX/DataShop. `Стартовый / Starter` is the free API-token tier; `Promo` is paid/subscribed access. Entitlement, delay, and field coverage depend on the selected plan.
+- Subscribe to ALGOPACK from the product page when paid or expanded entitlement is needed: `https://data.moex.com/products/algopack`.
 - Generate the API key in the personal account: `https://data.moex.com/personal-account`.
 - Treat commercial terms, prices, key lifetime, and current entitlement as account-facing details that can change.
 - Never paste real API keys into source files, notebooks, shell history, logs, screenshots, or chat replies.
@@ -37,20 +38,15 @@ Set `APIKEY=...` in a local `.env` file and keep that file out of source control
 
 ## Access Levels
 
-It is fine to tell users plainly that real-time or fully up-to-date data requires a valid bearer token and the relevant product entitlement. Public ISS data can be delayed, limited by fields, or unavailable for subscriber-only datasets.
+Use this compact tier summary when users ask what access a token or subscription provides. Point users to Data MOEX/DataShop for current commercial terms, current entitlement, and price-sensitive details.
 
-Known local product guidance:
-
-| Dataset | Not-authorized behavior |
+| Tier | Guidance |
 | --- | --- |
-| Securities, marketdata, candles, trades | Usually delayed and/or limited fields |
-| OrderBook | Usually 403, subscription required |
-| SuperCandles: `tradestats`, `orderstats`, `obstats` | Usually 403, subscription required |
-| HI2 | Usually 403, subscription required |
-| FUTOI | Plan-dependent; local notes conflict between 15-minute delayed access and T-15-day delayed/free availability |
-| Mega Alerts | Usually 403, subscription required |
+| `Стартовый / Starter` free API-token tier | Includes 15-minute delayed candles and trades, FUTOI at `T - 15 days`, market map, website visualizations, API access, and the Python library. |
+| `Стартовый / Starter` planned/upcoming | SuperCandles, Mega Alerts, and HI2 at `T - 1 day` are planned for the free token tier. Verify current availability before promising access. |
+| `Promo` paid/subscribed tier | Includes FUTOI, online order books, online candles, online trades, SuperCandles, Mega Alerts, HI2, market map, website visualizations, API access, the Python library, and a machine-readable calendar. |
 
-Do not promise a specific free FUTOI delay window. Direct users to DataShop or the personal account for authoritative current entitlement.
+Real-time, online, or fully up-to-date data requires a valid bearer token and the relevant entitlement. Public ISS data can be delayed, limited by fields, or unavailable for subscriber-only datasets. Do not promise planned Starter/free-token features as currently available until the user's account or current DataShop terms confirm access.
 
 ## Error Diagnosis
 

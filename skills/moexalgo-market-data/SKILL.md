@@ -37,7 +37,7 @@ book = sber.orderbook()
 ## Core Workflow
 
 1. Install `moexalgo[dataframe]` and `python-dotenv` for DataFrame output and `.env` loading.
-2. Store `APIKEY` in `.env`, call `load_dotenv()`, then set `session.TOKEN` from `os.environ["APIKEY"]` when real-time, fully up-to-date, or subscriber-only access is needed.
+2. Store `APIKEY` in `.env`, call `load_dotenv()`, then set `session.TOKEN` from `os.environ["APIKEY"]` for plan-entitled access. `Стартовый / Starter` free-token access includes 15-minute delayed candles and trades; `Promo` includes online order books, candles, and trades.
 3. Use `Market("EQ"|"FO"|"FX")` for market-wide rows and `Ticker("SBER")` for one instrument.
 4. Keep metadata and quotes separate: `tickers(...)` reads the ISS `securities` block, while `marketdata(...)` reads the ISS `marketdata` block.
 5. Pass explicit field names for compact DataFrames; use `tickers("*")` for all `securities` fields and `marketdata("*")` for all `marketdata` fields.

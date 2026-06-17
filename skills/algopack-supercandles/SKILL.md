@@ -9,6 +9,8 @@ description: Direct ALGOPACK SuperCandles API workflows for tradestats, ordersta
 
 Use this skill for raw SuperCandles endpoints and 5-minute metric fields. Return URLs, `curl`, normalized JSON rows, CSV/JSON handoff guidance, and concise field interpretation.
 
+Access note: `Promo` includes SuperCandles. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; verify current access before promising it.
+
 ## Quick Start
 
 ```bash

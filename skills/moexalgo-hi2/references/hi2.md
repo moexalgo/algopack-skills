@@ -15,7 +15,7 @@ load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
-HI2 usually requires subscriber entitlement.
+`Promo` includes HI2. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; if users see `403`, empty data, non-JSON responses, or missing rows, verify current entitlement and current DataShop terms before promising access.
 
 ## Meaning and Cadence
 

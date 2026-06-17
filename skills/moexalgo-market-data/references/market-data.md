@@ -15,7 +15,7 @@ load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
-Set `APIKEY=...` in a local `.env` file and keep that file out of source control. When `session.TOKEN` is set, the library uses `https://apim.moex.com/iss` and adds `Authorization: Bearer ...`; this is needed for real-time, fully up-to-date, or subscriber-only data. Without it, the library uses public ISS, which can be delayed or limited.
+Set `APIKEY=...` in a local `.env` file and keep that file out of source control. When `session.TOKEN` is set, the library uses `https://apim.moex.com/iss` and adds `Authorization: Bearer ...` for plan-entitled access. `Стартовый / Starter` free-token access includes 15-minute delayed candles and trades; `Promo` includes online order books, candles, and trades. Without a token, the library uses public ISS, which can be delayed or limited.
 
 ## Markets and Boards
 

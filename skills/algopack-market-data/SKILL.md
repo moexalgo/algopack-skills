@@ -16,7 +16,7 @@ curl -L "https://apim.moex.com/iss/engines/stock/markets/shares/boards/TQBR/secu
   -H "Authorization: Bearer ${APIKEY}"
 ```
 
-For public delayed ISS data, try the same path on `https://iss.moex.com/iss` without the bearer header. For real-time or fully up-to-date subscriber data, use `https://apim.moex.com/iss` with `Authorization: Bearer ${APIKEY}` and the required entitlement.
+For public delayed ISS data, try the same path on `https://iss.moex.com/iss` without the bearer header. In ALGOPACK tiers, `Стартовый / Starter` free-token access includes 15-minute delayed candles and trades; `Promo` includes online order books, candles, and trades.
 
 ## Core Workflow
 

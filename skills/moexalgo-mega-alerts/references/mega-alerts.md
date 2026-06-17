@@ -16,7 +16,7 @@ load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
-Mega Alerts usually require subscriber entitlement. Local endpoint lists document EQ and FO.
+`Promo` includes Mega Alerts. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; if users see `403`, empty data, non-JSON responses, or missing rows, verify current entitlement and current DataShop terms before promising access. Local endpoint lists document EQ and FO.
 
 ## Method Signatures
 

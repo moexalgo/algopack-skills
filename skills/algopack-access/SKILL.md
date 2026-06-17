@@ -1,6 +1,6 @@
 ---
 name: algopack-access
-description: ALGOPACK access, subscription, API key, authorization, entitlement, and troubleshooting guidance for DataShop setup, bearer tokens, moexalgo .env session.TOKEN setup, direct REST headers, free or delayed access, 401, 403, 429, rate limits, and product boundaries.
+description: ALGOPACK access, free and paid API keys, subscription, API key authorization, entitlement, and troubleshooting guidance for DataShop setup, bearer tokens, moexalgo .env session.TOKEN setup, direct REST headers, free or delayed access, 401, 403, 429, rate limits, and product boundaries.
 ---
 
 # ALGOPACK Access
@@ -12,11 +12,12 @@ Use this skill to help users get authenticated ALGOPACK access and diagnose subs
 ## Core Workflow
 
 1. Confirm whether the user is using direct REST/curl or the Python library.
-2. For direct REST, show `Authorization: Bearer ${APIKEY}` against `https://apim.moex.com/iss`.
-3. For Python library workflows, store `APIKEY` in `.env`, call `load_dotenv()`, then set `session.TOKEN` from `os.environ["APIKEY"]`.
-4. Tell users that real-time or fully up-to-date subscriber data requires a valid token and product entitlement; public ISS can be delayed or limited.
-5. Map the symptom to missing/expired key, no product entitlement, wrong host, market/date coverage, or throttling.
-6. State product boundaries: ALGOPACK supplies market data and analytics, not order placement.
+2. Explain that Data MOEX/DataShop can provide free API-token access through `Стартовый / Starter`, while `Promo` is paid/subscribed access.
+3. Tell users that entitlement, delay, and field coverage are account-plan dependent; real-time or fully up-to-date data requires a valid token and the relevant entitlement.
+4. For direct REST, show `Authorization: Bearer ${APIKEY}` against `https://apim.moex.com/iss`.
+5. For Python library workflows, store `APIKEY` in `.env`, call `load_dotenv()`, then set `session.TOKEN` from `os.environ["APIKEY"]`.
+6. Map the symptom to missing/expired key, no product entitlement, wrong host, market/date coverage, or throttling.
+7. State product boundaries: ALGOPACK supplies market data and analytics, not order placement.
 
 ## Quick Start
 

@@ -10,6 +10,8 @@ SuperCandles are calculated 5-minute metrics based on trades, order-flow events,
 
 Markets are `eq`, `fo`, and `fx`. Local docs describe history from 2020 and publication several seconds after each 5-minute interval closes.
 
+`Promo` includes SuperCandles. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; if users see `403`, empty data, non-JSON responses, or missing rows, verify current entitlement and current DataShop terms before promising access.
+
 ## Endpoint Map
 
 Use `https://apim.moex.com/iss` with a bearer token.

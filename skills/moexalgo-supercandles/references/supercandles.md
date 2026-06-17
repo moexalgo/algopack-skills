@@ -15,7 +15,7 @@ load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
-SuperCandles usually require subscriber entitlement. Missing or insufficient access often appears as 403 or an empty/non-JSON response.
+`Promo` includes SuperCandles. `Стартовый / Starter` free-token availability is planned at `T - 1 day`; if users see `403`, empty data, non-JSON responses, or missing rows, verify current entitlement and current DataShop terms before promising access.
 
 ## Method Choice
 

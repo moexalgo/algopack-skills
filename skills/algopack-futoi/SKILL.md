@@ -9,6 +9,8 @@ description: Direct ALGOPACK FUTOI API workflows for futures-only open interest,
 
 Use this skill for direct FUTOI endpoint access. FUTOI is futures open interest split by participant group and published as aggregate snapshots; it is not for equities, FX, options, individual trader data, or exact single-contract FIZ/YUR positioning.
 
+Access note: `Стартовый / Starter` free-token access has FUTOI delayed at `T - 15 days`; `Promo` has fuller/online access, subject to current entitlement.
+
 ## Quick Start
 
 ```bash

@@ -15,7 +15,7 @@ load_dotenv()
 session.TOKEN = os.environ["APIKEY"]
 ```
 
-FUTOI access is plan-dependent. Local docs conflict between 15-minute delayed and T-15-day starter/free availability, so do not promise a specific delay window without checking current entitlement. FUTOI is futures-only; it is not equities, FX, options, individual trader data, or exact single-contract FIZ/YUR positioning.
+`Стартовый / Starter` free-token access has FUTOI delayed at `T - 15 days`; `Promo` has fuller/online access, subject to current entitlement. FUTOI is futures-only; it is not equities, FX, options, individual trader data, or exact single-contract FIZ/YUR positioning.
 
 ## Method Signatures
 

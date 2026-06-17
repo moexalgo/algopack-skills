@@ -52,6 +52,14 @@ adding skills, follow these rules.
 - Use direct ISS or REST examples only when the skill scope is raw endpoints,
   calendar/discovery work, unsupported APIs, or non-Python integration.
 - Use `APIKEY` in examples and never include real credentials.
+- In access guidance, mention that Data MOEX/DataShop can provide API-key
+  access for both free and paid/subscribed plans, with current entitlement,
+  delay, and field coverage determined by the user's account.
+- Keep detailed ALGOPACK tier wording centralized in
+  `skills/algopack-access`; dataset skills should mention access implications
+  briefly and avoid copying the full tier matrix.
+- Do not include volatile prices unless the user explicitly asks and the price
+  is dated and source-qualified.
 - Tell users plainly when real-time, fully up-to-date, or subscriber-only data
   requires a valid token and product entitlement; public ISS data can be delayed
   or limited.
